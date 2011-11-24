@@ -4,7 +4,7 @@ Bundler.setup
 Bundler.require
 
 def get_repo_path(user, repo)
-  "../drinks/"
+  "../#{repo}/"
 end
 
 def render_post(repo_path, post_name)
@@ -13,8 +13,11 @@ def render_post(repo_path, post_name)
   post_data['content'] = File.read(path).sub /---.*---\n/m, ''
   post_data['content'] = RDiscount.new(post_data['content']).to_html
   
-  layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-  layout.render(post_data)
+  template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
+  post_content = template.render(post_data)
+  
+  layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
+  layout.render 'content' => post_content
 end
 
 get '/' do
