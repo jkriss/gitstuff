@@ -12,10 +12,23 @@ class Repo
     end
   end
   
+  def self.clone(user, name, clone_url)
+    tmp_repo_path = repo_path(user, name)
+    FileUtils.mkdir_p tmp_repo_path
+    `cd #{tmp_repo_path} && git clone #{clone_url} ./`
+    repo = Repo.new(user, name)
+    repo.pull
+    repo.reindex
+  end
+  
   def initialize(user, name)
     @user = user
     @name = name
     @git = Grit::Repo.new(repo_path)
+  end
+  
+  def pull
+    `cd #{repo_path} && git pull`
   end
   
   def post(slug)
@@ -99,7 +112,9 @@ class Repo
   end
   
   def self.repo_path(user=@user, name=@name)
-    "../#{name}"
+    # "../#{name}"
+    base_path = "tmp/repos"
+    "#{base_path}/#{user}/#{name}"
   end
   
 end

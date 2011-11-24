@@ -28,6 +28,12 @@ def index
   repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), :page => params[:page]
 end
 
+post '/:user/:repo' do
+  clone_url = request.body.read
+  repo = Repo.clone(params[:user], params[:repo], clone_url)
+  'ok'
+end
+
 get '/:user/:repo/info' do
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
