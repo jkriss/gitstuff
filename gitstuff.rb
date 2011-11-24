@@ -25,7 +25,7 @@ end
 def index
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
-  repo.render_index partials(repo).merge({ :url_prefix => url_prefix })
+  repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), :page => params[:page]
 end
 
 get '/:user/:repo/info' do

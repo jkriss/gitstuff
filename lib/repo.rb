@@ -44,9 +44,14 @@ class Repo
     end
   end
   
-  def render_index(context={})
+  def render_index(context={}, options={})
     html = ""
-    ElasticSearch.search(user, name, '*').each do |post|
+    query_options = { :sort => [{ :created_at_sortable => :desc }] }
+    page = options[:page] || 1
+    size = 1
+    query_options[:from] = (page.to_i-1) * size
+    query_options[:size] = size
+    ElasticSearch.search(user, name, '*', query_options).each do |post|
       html += render_raw_post(post, context.merge({ :url => "#{context[:url_prefix]}/#{post.id}" }))
     end
     render_layout(html, context)
@@ -76,7 +81,9 @@ class Repo
       post_data['author'] = { :name => author.name, :email => author.email }
       post_data['gravatar'] = "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(author.email)}"
       post_data['created_at'] = first_commit_for_path.authored_date
+      post_data['created_at_sortable'] = first_commit_for_path.authored_date.to_i
       post_data['modified_at'] = last_commit_for_path.authored_date
+      post_data['modified_at_sortable'] = last_commit_for_path.authored_date.to_i
     end
   end
   

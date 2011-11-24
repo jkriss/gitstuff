@@ -14,8 +14,16 @@ class ElasticSearch
     post
   end
   
-  def self.search(user, repo, query)
-    results = self.get "/#{user}/#{repo}/_search?q=#{query}"
+  def self.search(user, repo, query, options={})
+    # results = self.get "/#{user}/#{repo}/_search?q=#{query}"
+    composed_query = {
+      :query => {
+        :query_string => {
+          :query => query
+        }
+      }
+    }.merge(options)
+    results = self.post "/#{user}/#{repo}/_search?", :body => composed_query.to_json
     if !results['hits'] || results['hits']['total'] == 0
       []
     else
