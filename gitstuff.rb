@@ -3,34 +3,8 @@ require 'bundler'
 Bundler.setup
 Bundler.require
 require 'lib/elastic_search'
-
-def get_repo_path(user, repo)
-  "../#{repo}/"
-end
-
-def render_post(user, repo, post_name)
-  repo_path = get_repo_path(user, repo)
-  path = File.join(repo_path, 'posts', params[:post]) + ".yml"
-  post_data = YAML.load_file(path)
-  
-  
-  post_data['content'] = File.read(path).sub /---.*---\n/m, ''
-  
-  # for now, update the index on every render
-  ElasticSearch.index_post user, repo, post_name, post_data
-  
-  post_data['content'] = RDiscount.new(post_data['content']).to_html
-  
-  template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-  post_content = template.render(post_data)
-  
-  layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
-  layout.render 'content' => post_content
-end
-
-get '/' do
-  "yo."
-end
+require 'lib/repo'
+require 'lib/post'
 
 get '/:user/:repo/search' do
   results = ElasticSearch.search params[:user], params[:repo], params[:q]
@@ -38,5 +12,15 @@ get '/:user/:repo/search' do
 end
 
 get '/:user/:repo/:post' do
-  render_post params[:user], params[:repo], params[:post]
+  repo = Repo.find(params[:user], params[:repo])
+  raise Sinatra::NotFound unless repo
+  post = repo.post(params[:post])
+  raise Sinatra::NotFound unless post
+  repo.render_post post
+end
+
+post '/:user/:repo/reindex' do
+  repo = Repo.find(params[:user], params[:repo])
+  repo.reindex
+  'ok'
 end
