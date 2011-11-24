@@ -10,8 +10,12 @@ class ElasticSearch
   def self.get_post(user, repo, slug)
     result = self.get "/#{user}/#{repo}/#{slug}"
     post = result['_source']
-    post['id'] = result['_id']
-    post
+    if post
+      post['id'] = result['_id']
+      post
+    else
+      nil
+    end
   end
   
   def self.search(user, repo, query, options={})
