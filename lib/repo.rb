@@ -1,6 +1,8 @@
+require 'digest/md5'
+
 class Repo
   
-  attr_accessor :user, :name
+  attr_accessor :user, :name, :git
   
   def self.find(user, name)
     if File.exists? repo_path(user, name)
@@ -13,6 +15,7 @@ class Repo
   def initialize(user, name)
     @user = user
     @name = name
+    @git = Grit::Repo.new(repo_path)
   end
   
   def post(slug)
@@ -24,6 +27,7 @@ class Repo
     path ||= File.join(repo_path, 'posts', slug) + ".yml"
     puts "indexing #{path}..."
     post_data = YAML.load_file(path)
+    add_git_data(post_data, path)
     post_data['content'] = File.read(path).sub /---.*---\n/m, ''  
     ElasticSearch.index_post user, name, slug, post_data
   end
@@ -54,6 +58,28 @@ class Repo
   end
   
   protected
+  def add_git_data(post_data, path)
+    # loop through commits until we find an edit
+    path = path.sub repo_path+'/', ''
+    last_commit_for_path = nil
+    first_commit_for_path = nil
+    git.commits.each do |commit|
+      commit.diffs.each do |diff|
+        if diff.b_path == path
+          last_commit_for_path ||= commit
+          first_commit_for_path = commit
+        end
+      end
+    end
+    if last_commit_for_path
+      author = last_commit_for_path.author
+      post_data['author'] = { :name => author.name, :email => author.email }
+      post_data['gravatar'] = "http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(author.email)}"
+      post_data['created_at'] = first_commit_for_path.authored_date
+      post_data['modified_at'] = last_commit_for_path.authored_date
+    end
+  end
+  
   def render_raw_post(post, context={})
     post.content = RDiscount.new(post.content).to_html  
     template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))

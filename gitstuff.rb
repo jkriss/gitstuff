@@ -28,6 +28,30 @@ def index
   repo.render_index partials(repo).merge({ :url_prefix => url_prefix })
 end
 
+get '/:user/:repo/info' do
+  repo = Repo.find(params[:user], params[:repo])
+  raise Sinatra::NotFound unless repo
+  content_type :text
+  html = ""
+  repo.git.commits.each do |commit|
+    html += "commit #{commit.id}:  #{commit.author.inspect}, #{commit.authored_date}\n"
+    # html += "#{commit.diffs}\n"
+    commit.diffs.each do |diff|
+      html += "#{diff.inspect}\n"
+    end
+    commit.tree.contents.each do |tree_or_blob|
+      html += "  #{tree_or_blob.name}\n"
+      if tree_or_blob.is_a? Grit::Tree
+        tree_or_blob.contents.each do |blob|
+            html += "    #{blob.name}\n"
+        end
+      end
+          
+    end
+  end
+  html
+end
+
 get '/:user/:repo/search' do
   results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
   results.collect do |post|
