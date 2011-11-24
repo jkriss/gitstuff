@@ -39,18 +39,32 @@ class Repo
       index_post slug, path
     end
   end
+  
+  def render_index(context={})
+    html = ""
+    ElasticSearch.search(user, name, '*').each do |post|
+      html += render_raw_post(post, context)
+    end
+    render_layout(html, context)
+  end
 
   def render_post(post, context={})
-    post.content = RDiscount.new(post.content).to_html
-  
-    template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-    rendered_post = template.render(context.merge(post.to_hash))
-  
-    layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
-    layout.render Hashie::Mash.new context.merge(:content => rendered_post)
+    rendered_post = render_raw_post(post, context)
+    render_layout(rendered_post, context)
   end
   
   protected
+  def render_raw_post(post, context={})
+    post.content = RDiscount.new(post.content).to_html  
+    template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
+    template.render(context.merge(post.to_hash))
+  end
+  
+  def render_layout(content, context={})
+    layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
+    layout.render Hashie::Mash.new context.merge(:content => content)
+  end
+  
   def self.repo_path(user=@user, name=@name)
     "../#{name}"
   end

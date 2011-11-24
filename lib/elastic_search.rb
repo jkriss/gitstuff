@@ -13,7 +13,16 @@ class ElasticSearch
   end
   
   def self.search(user, repo, query)
-    self.get "/#{user}/#{repo}/_search?q=#{query}"
+    results = self.get "/#{user}/#{repo}/_search?q=#{query}"
+    if !results['hits'] || results['hits']['total'] == 0
+      []
+    else
+      results['hits']['hits'].collect do |result|
+        p = Post.new(result['_source'])
+        p.id = result['_id']
+        p
+      end
+    end
   end
   
   def self.clear(user, repo)
