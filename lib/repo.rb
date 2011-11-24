@@ -43,7 +43,7 @@ class Repo
   def render_index(context={})
     html = ""
     ElasticSearch.search(user, name, '*').each do |post|
-      html += render_raw_post(post, context)
+      html += render_raw_post(post, context.merge({ :url => "#{context[:url_prefix]}/#{post.id}" }))
     end
     render_layout(html, context)
   end
@@ -57,7 +57,7 @@ class Repo
   def render_raw_post(post, context={})
     post.content = RDiscount.new(post.content).to_html  
     template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-    template.render(context.merge(post.to_hash))
+    template.render Hashie::Mash.new(context.merge(post.to_hash))
   end
   
   def render_layout(content, context={})

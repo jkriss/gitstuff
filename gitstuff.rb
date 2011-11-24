@@ -9,21 +9,30 @@ require 'lib/post'
 def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"
   {
-    :search_form => haml(:search_form)
+    :search_form => haml(:search_form),
+    :root_path => url_prefix
   }
+end
+
+def url_prefix
+  "/#{params[:user]}/#{params[:repo]}"
+end
+
+def post_url(slug)
+  "#{url_prefix}/#{slug}"
 end
 
 def index
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
-  repo.render_index partials(repo)  
+  repo.render_index partials(repo).merge({ :url_prefix => url_prefix })
 end
 
 get '/:user/:repo/search' do
   results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
   results.collect do |post|
     {
-      :value => "/#{params[:user]}/#{params[:repo]}/#{post.id}", 
+      :value => post_url(post.id), 
       :label => post.title || post.id
     }
   end.to_json
@@ -43,7 +52,7 @@ get '/:user/:repo/:post' do
   post = repo.post(params[:post])
   repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
   raise Sinatra::NotFound unless post
-  repo.render_post post, partials(repo)
+  repo.render_post post, partials(repo).merge({ :single_post => true })
 end
 
 post '/:user/:repo/reindex' do
