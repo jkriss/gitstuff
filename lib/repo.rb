@@ -32,16 +32,12 @@ class Repo
   end
   
   def post(slug)
-    post_data = ElasticSearch.get_post(user, name, slug)
+    post_data = LOCAL_REPO_PATH ? load_post_file(slug) : ElasticSearch.get_post(user, name, slug)
     post_data ? Post.new(post_data) : nil
   end
   
   def index_post(slug, path=nil)
-    path ||= File.join(repo_path, 'posts', slug) + ".yml"
-    puts "indexing #{path}..."
-    post_data = YAML.load_file(path)
-    add_git_data(post_data, path)
-    post_data['content'] = File.read(path).sub /---.*---\n/m, ''  
+    post_data = load_post_file(slug, path)
     ElasticSearch.index_post user, name, slug, post_data
   end
   
@@ -58,6 +54,7 @@ class Repo
   end
   
   def render_index(context={}, options={})
+    reindex if LOCAL_REPO_PATH
     html = ""
     query_options = { :sort => [{ :created_at_sortable => :desc }] }
     page = options[:page] || 1
@@ -71,11 +68,20 @@ class Repo
   end
 
   def render_post(post, context={})
+    reindex if LOCAL_REPO_PATH
     rendered_post = render_raw_post(post, context)
     render_layout(rendered_post, context)
   end
   
   protected
+  def load_post_file(slug, post=nil)
+    path ||= File.join(repo_path, 'posts', slug) + ".yml"
+    post_data = YAML.load_file(path)
+    add_git_data(post_data, path)
+    post_data['content'] = File.read(path).sub /---.*---\n/m, ''
+    post_data
+  end
+  
   def add_git_data(post_data, path)
     # loop through commits until we find an edit
     path = path.sub repo_path+'/', ''
@@ -112,9 +118,13 @@ class Repo
   end
   
   def self.repo_path(user=@user, name=@name)
-    # "../#{name}"
-    base_path = "tmp/repos"
-    "#{base_path}/#{user}/#{name}"
+    # LOCAL_REPO_PATH="../<repo>"
+    if LOCAL_REPO_PATH
+      LOCAL_REPO_PATH.sub('<user>', user).sub('<repo>', name)
+    else
+      base_path = "tmp/repos"
+      "#{base_path}/#{user}/#{name}"
+    end
   end
   
 end

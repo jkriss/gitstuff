@@ -6,6 +6,8 @@ require 'lib/elastic_search'
 require 'lib/repo'
 require 'lib/post'
 
+LOCAL_REPO_PATH = ENV['LOCAL_REPO_PATH']
+
 def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"
   {
