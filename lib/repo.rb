@@ -40,14 +40,14 @@ class Repo
     end
   end
 
-  def render_post(post)
+  def render_post(post, context={})
     post.content = RDiscount.new(post.content).to_html
   
     template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-    rendered_post = template.render(post.to_hash)
+    rendered_post = template.render(context.merge(post.to_hash))
   
     layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
-    layout.render 'content' => rendered_post
+    layout.render Hashie::Mash.new context.merge(:content => rendered_post)
   end
   
   protected

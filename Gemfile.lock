@@ -9,6 +9,7 @@ GEM
     grit (2.4.1)
       diff-lcs (~> 1.1)
       mime-types (~> 1.15)
+    haml (3.1.2)
     hashie (1.1.0)
     httparty (0.7.8)
       crack (= 0.1.8)
@@ -44,6 +45,7 @@ PLATFORMS
 DEPENDENCIES
   foreman
   grit
+  haml
   hashie
   httparty
   json
