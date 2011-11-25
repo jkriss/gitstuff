@@ -37,6 +37,10 @@ def find_repo
   repo
 end
 
+get '/' do
+  haml :index
+end
+
 post '/:user/:repo' do
   clone_url = request.body.read
   repo = Repo.clone(params[:user], params[:repo], clone_url)
