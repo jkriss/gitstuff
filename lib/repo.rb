@@ -68,8 +68,12 @@ class Repo
     results.hits.each do |post|
       html += render_raw_post(post, context.merge({ :url => "#{context[:url_prefix]}/#{post.id}" }))
     end
+    context[:no_results] = true if results.hits.empty?
     page_url_prefix = "?"
-    page_url_prefix += "q=#{query}&" if options[:search]
+    if options[:search]
+      page_url_prefix += "q=#{query}&" 
+      context[:query] = query
+    end
     if page > 1
       context[:previous_page] = "#{page_url_prefix}page=#{page-1}"
     end
