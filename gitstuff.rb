@@ -44,9 +44,10 @@ end
 
 post '/update' do
   payload = request.body.read
-  payload = JSON.parse(payload)
+  payload = JSON.parse(params[:payload])
   url = payload['repository']['url']
-  repo_path = url.sub 'http://github.com/', ''
+  puts url
+  repo_path = url.sub /https?:\/\/github.com\//, ''
   user, repo_name = repo_path.split '/'
   clone_url = "git://github.com/#{user}/#{repo_name}.git"
   repo = Repo.clone(user, repo_name, clone_url)

@@ -58,7 +58,6 @@ class Repo
   end
   
   def render_collection(query, context={}, options={})
-    # reindex if LOCAL_REPO_PATH
     html = ""
     query_options = { :sort => [{ :created_at_sortable => :desc }] }
     page = (options[:page] || 1).to_i
