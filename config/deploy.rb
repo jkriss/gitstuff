@@ -1,3 +1,5 @@
+require "bundler/capistrano"
+
 set :application, "gitstuff"
 set :repository,  "git@github.com:jkriss/gitstuff.git"
 

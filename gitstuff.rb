@@ -7,6 +7,7 @@ require 'lib/repo'
 require 'lib/post'
 
 LOCAL_REPO_PATH = ENV['LOCAL_REPO_PATH']
+REPO_CACHE_PATH = ENV['RACK_ENV'] == 'production' ? "../../shared/repos" : "tmp/repos"
 
 def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"

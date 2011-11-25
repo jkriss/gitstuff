@@ -134,7 +134,7 @@ class Repo
     if LOCAL_REPO_PATH
       LOCAL_REPO_PATH.sub('<user>', user).sub('<repo>', name)
     else
-      base_path = "tmp/repos"
+      base_path = REPO_CACHE_PATH
       "#{base_path}/#{user}/#{name}"
     end
   end
