@@ -30,6 +30,12 @@ def index
   repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), :page => params[:page]
 end
 
+def find_repo
+  repo = Repo.find(params[:user], params[:repo])
+  raise Sinatra::NotFound unless repo
+  repo
+end
+
 post '/:user/:repo' do
   clone_url = request.body.read
   repo = Repo.clone(params[:user], params[:repo], clone_url)
@@ -48,8 +54,7 @@ post '/update' do
 end
 
 get '/:user/:repo/info' do
-  repo = Repo.find(params[:user], params[:repo])
-  raise Sinatra::NotFound unless repo
+  repo = find_repo
   content_type :text
   html = ""
   repo.git.commits.each do |commit|
@@ -72,13 +77,21 @@ get '/:user/:repo/info' do
 end
 
 get '/:user/:repo/search' do
-  results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
-  results.hits.collect do |post|
-    {
-      :value => post_url(post.id), 
-      :label => post.title || post.id
-    }
-  end.to_json
+  if request.accept.include? 'text/javascript'
+    results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
+    results.hits.collect do |post|
+      {
+        :value => post_url(post.id), 
+        :label => post.title || post.id
+      }
+    end.to_json
+  else
+    repo = find_repo
+    repo.render_collection params[:q], 
+      partials(repo).merge({ :url_prefix => url_prefix }), 
+      :page => params[:page],
+      :search => true
+  end
 end
 
 get '/:user/:repo/' do
@@ -90,8 +103,7 @@ get '/:user/:repo' do
 end
 
 get '/:user/:repo/:post' do
-  repo = Repo.find(params[:user], params[:repo])
-  raise Sinatra::NotFound unless repo
+  repo = find_repo
   post = repo.post(params[:post])
   repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
   raise Sinatra::NotFound unless post
@@ -99,7 +111,6 @@ get '/:user/:repo/:post' do
 end
 
 post '/:user/:repo/reindex' do
-  repo = Repo.find(params[:user], params[:repo])
-  repo.reindex
+  find_repo.reindex
   'ok'
 end
