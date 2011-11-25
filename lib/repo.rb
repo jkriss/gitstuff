@@ -54,15 +54,22 @@ class Repo
   end
   
   def render_index(context={}, options={})
-    reindex if LOCAL_REPO_PATH
+    # reindex if LOCAL_REPO_PATH
     html = ""
     query_options = { :sort => [{ :created_at_sortable => :desc }] }
-    page = options[:page] || 1
-    size = 1
-    query_options[:from] = (page.to_i-1) * size
+    page = (options[:page] || 1).to_i
+    size = (options[:page_size] || 5).to_i
+    query_options[:from] = (page-1) * size
     query_options[:size] = size
-    ElasticSearch.search(user, name, '*', query_options).each do |post|
+    results = ElasticSearch.search(user, name, '*', query_options)
+    results.hits.each do |post|
       html += render_raw_post(post, context.merge({ :url => "#{context[:url_prefix]}/#{post.id}" }))
+    end
+    if page > 1
+      context[:previous_page] = "?page=#{page-1}"
+    end
+    if results.total > results.hits.size + (size * (page-1))
+      context[:next_page] = "?page=#{page+1}"
     end
     render_layout(html, context)
   end

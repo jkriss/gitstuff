@@ -36,6 +36,17 @@ post '/:user/:repo' do
   'ok'
 end
 
+post '/update' do
+  payload = request.body.read
+  payload = JSON.parse(payload)
+  url = payload['repository']['url']
+  repo_path = url.sub 'http://github.com/', ''
+  user, repo_name = repo_path.split '/'
+  clone_url = "git://github.com/#{user}/#{repo_name}.git"
+  repo = Repo.clone(user, repo_name, clone_url)
+  'ok'
+end
+
 get '/:user/:repo/info' do
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
@@ -62,7 +73,7 @@ end
 
 get '/:user/:repo/search' do
   results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
-  results.collect do |post|
+  results.hits.collect do |post|
     {
       :value => post_url(post.id), 
       :label => post.title || post.id

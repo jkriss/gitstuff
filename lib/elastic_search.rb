@@ -29,13 +29,14 @@ class ElasticSearch
     }.merge(options)
     results = self.post "/#{user}/#{repo}/_search?", :body => composed_query.to_json
     if !results['hits'] || results['hits']['total'] == 0
-      []
+      Hashie::Mash.new :hits => [], :total => 0
     else
-      results['hits']['hits'].collect do |result|
+      hits = results['hits']['hits'].collect do |result|
         p = Post.new(result['_source'])
         p.id = result['_id']
         p
       end
+      Hashie::Mash.new :hits => hits, :total => results['hits']['total']
     end
   end
   
