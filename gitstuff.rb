@@ -38,7 +38,7 @@ def find_repo
 end
 
 get '/' do
-  haml :index
+  haml :index, :layout => :gitstuff_layout
 end
 
 post '/:user/:repo' do
