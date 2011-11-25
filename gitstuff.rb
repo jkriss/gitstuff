@@ -110,10 +110,18 @@ end
 
 get '/:user/:repo/:post' do
   repo = find_repo
-  post = repo.post(params[:post])
-  repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
-  raise Sinatra::NotFound unless post
-  repo.render_post post, partials(repo).merge({ :single_post => true })
+  if params[:post].include? ':'
+    filter_attribute, filter_value = params[:post].split ':'
+    repo.render_collection "#{filter_attribute}:#{filter_value}", 
+      partials(repo).merge({ :url_prefix => url_prefix }), 
+      :page => params[:page],
+      :search => true
+  else
+    post = repo.post(params[:post])
+    repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
+    raise Sinatra::NotFound unless post
+    repo.render_post post, partials(repo).merge({ :single_post => true })
+  end
 end
 
 post '/:user/:repo/reindex' do
