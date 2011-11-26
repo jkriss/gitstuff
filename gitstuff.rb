@@ -55,6 +55,12 @@ post '/:user/:repo' do
   'ok'
 end
 
+get '/:user/:repo/assets/*' do
+  # https://github.com/jkriss/drinks/raw/master/assets/favicon.ico
+  asset_path = params[:splat].join "/"
+  redirect "https://github.com/#{params[:user]}/#{params[:repo]}/raw/master/assets/favicon.ico"
+end
+
 post '/update' do
   payload = request.body.read
   payload = JSON.parse(params[:payload])
