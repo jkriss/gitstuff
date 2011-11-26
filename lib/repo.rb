@@ -104,7 +104,6 @@ class Repo
     first_commit_for_path = nil
     git.commits('master', false).each do |commit|
       commit.diffs.each do |diff|
-        puts "checking #{diff.b_path} for #{path}" if path =~ /kir/
         if diff.b_path == path
           last_commit_for_path ||= commit
           first_commit_for_path = commit
