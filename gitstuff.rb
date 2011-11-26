@@ -29,7 +29,7 @@ def post_url(slug)
 end
 
 def index
-  repo = Repo.find(params[:user], params[:repo])
+  repo = find_repo
   raise Sinatra::NotFound unless repo
   repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), :page => params[:page]
 end
@@ -64,30 +64,8 @@ post '/update' do
   'ok'
 end
 
-get '/:user/:repo/info' do
-  repo = find_repo
-  content_type :text
-  html = ""
-  repo.git.commits.each do |commit|
-    html += "commit #{commit.id}:  #{commit.author.inspect}, #{commit.authored_date}\n"
-    # html += "#{commit.diffs}\n"
-    commit.diffs.each do |diff|
-      html += "#{diff.inspect}\n"
-    end
-    commit.tree.contents.each do |tree_or_blob|
-      html += "  #{tree_or_blob.name}\n"
-      if tree_or_blob.is_a? Grit::Tree
-        tree_or_blob.contents.each do |blob|
-            html += "    #{blob.name}\n"
-        end
-      end
-          
-    end
-  end
-  html
-end
-
 get '/:user/:repo/search' do
+  repo = find_repo
   if request.accept.include? 'text/javascript'
     results = ElasticSearch.search params[:user], params[:repo], params[:q] || params[:term]
     results.hits.collect do |post|
@@ -97,7 +75,6 @@ get '/:user/:repo/search' do
       }
     end.to_json
   else
-    repo = find_repo
     repo.render_collection params[:q], 
       partials(repo).merge({ :url_prefix => url_prefix }), 
       :page => params[:page],
