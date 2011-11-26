@@ -61,9 +61,9 @@ post '/:user/:repo' do
 end
 
 get '/:user/:repo/assets/*' do
+  # https://github.com/jkriss/drinks/raw/master/assets/favicon.ico
   asset_path = params[:splat].join "/"
-  repo = find_repo
-  send_file send_file "#{repo.repo_path}/assets/#{asset_path}"
+  redirect "https://github.com/#{params[:user]}/#{params[:repo]}/raw/master/assets/favicon.ico"
 end
 
 post '/update' do
