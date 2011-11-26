@@ -63,7 +63,7 @@ end
 get '/:user/:repo/assets/*' do
   # https://github.com/jkriss/drinks/raw/master/assets/favicon.ico
   asset_path = params[:splat].join "/"
-  redirect "https://github.com/#{params[:user]}/#{params[:repo]}/raw/master/assets/favicon.ico"
+  redirect "https://github.com/#{params[:user]}/#{params[:repo]}/raw/master/assets/#{asset_path}"
 end
 
 post '/update' do

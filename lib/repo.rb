@@ -31,6 +31,14 @@ class Repo
   
   def pull
     `cd #{repo_path} && git pull`
+    Dir["#{repo_path}/*"].each do |file_path|
+      puts "-- #{file_path}"
+      `rm -rf #{file_path}` unless file_path =~ /\/(layouts||posts)$/
+    end
+    Dir["#{repo_path}/*/*"].each do |file_path|
+      puts "-- #{file_path}"
+      `rm -rf #{file_path}` unless file_path =~ /(\.liquid$)|(\.yml$)/
+    end
   end
   
   def post(slug)
