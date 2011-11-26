@@ -84,7 +84,6 @@ class Repo
   end
 
   def render_post(post, context={})
-    reindex if LOCAL_REPO_PATH
     rendered_post = render_raw_post(post, context)
     render_layout(rendered_post, context)
   end
@@ -103,8 +102,9 @@ class Repo
     path = path.sub repo_path+'/', ''
     last_commit_for_path = nil
     first_commit_for_path = nil
-    git.commits.each do |commit|
+    git.commits('master', false).each do |commit|
       commit.diffs.each do |diff|
+        puts "checking #{diff.b_path} for #{path}" if path =~ /kir/
         if diff.b_path == path
           last_commit_for_path ||= commit
           first_commit_for_path = commit
@@ -119,6 +119,8 @@ class Repo
       post_data['created_at_sortable'] = first_commit_for_path.authored_date.to_i
       post_data['modified_at'] = last_commit_for_path.authored_date
       post_data['modified_at_sortable'] = last_commit_for_path.authored_date.to_i
+    else
+      puts "no last commit for #{path}"
     end
   end
   
