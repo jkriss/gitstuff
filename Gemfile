@@ -10,6 +10,7 @@ gem "foreman"
 gem "httparty"
 gem "hashie"
 gem "haml"
+gem "rack-cache"
 
 group :development do
   gem "capistrano"

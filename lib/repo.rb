@@ -1,5 +1,3 @@
-require 'digest/md5'
-
 class Repo
   
   attr_accessor :user, :name, :git
@@ -86,6 +84,10 @@ class Repo
   def render_post(post, context={})
     rendered_post = render_raw_post(post, context)
     render_layout(rendered_post, context)
+  end
+  
+  def commit_hash
+    git.commits('master',1).first
   end
   
   protected

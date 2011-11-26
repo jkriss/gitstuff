@@ -2,12 +2,15 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 Bundler.require
+require 'digest/md5'
 require 'lib/elastic_search'
 require 'lib/repo'
 require 'lib/post'
 
 LOCAL_REPO_PATH = ENV['LOCAL_REPO_PATH']
 REPO_CACHE_PATH = ENV['RACK_ENV'] == 'production' ? "../../shared/repos" : "tmp/repos"
+
+use Rack::Cache, :entitystore => 'file:tmp/cache/rack/body'
 
 def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"
@@ -34,6 +37,8 @@ end
 def find_repo
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
+  cache_control :public
+  etag Digest::MD5.hexdigest("#{request.url}-#{repo.commit_hash}")
   repo
 end
 
@@ -110,6 +115,7 @@ end
 
 get '/:user/:repo/:post' do
   repo = find_repo
+  
   if params[:post].include? ':'
     filter_attribute, filter_value = params[:post].split ':'
     repo.render_collection "#{filter_attribute}:#{filter_value}", 
