@@ -8,6 +8,7 @@ require 'lib/repo'
 require 'lib/post'
 require 'lib/cloner'
 require 'lib/indexer'
+require 'lib/api_key_manager'
 
 LOCAL_REPO_PATH = ENV['LOCAL_REPO_PATH']
 REPO_CACHE_PATH = ENV['RACK_ENV'] == 'production' ? "../../shared/repos" : "tmp/repos"
@@ -54,26 +55,21 @@ get '/' do
   haml :index, :layout => :gitstuff_layout
 end
 
-post '/:user/:repo' do
-  clone_url = request.body.read
-  repo = Repo.clone(params[:user], params[:repo], clone_url)
-  'ok'
-end
-
 get '/:user/:repo/assets/*' do
   # https://github.com/jkriss/drinks/raw/master/assets/favicon.ico
   asset_path = params[:splat].join "/"
   redirect "https://github.com/#{params[:user]}/#{params[:repo]}/raw/master/assets/#{asset_path}"
 end
 
-post '/update' do
+post '/update/:api_key' do
   payload = request.body.read
   payload = JSON.parse(params[:payload])
   url = payload['repository']['url']
-  puts url
   repo_path = url.sub /https?:\/\/github.com\//, ''
   user, repo_name = repo_path.split '/'
   clone_url = "git://github.com/#{user}/#{repo_name}.git"
+  # make sure the api key matches
+  return 403 unless ApiKeyManager.valid_key? params[:api_key], clone_url
   repo = Repo.clone(user, repo_name, clone_url)
   'ok'
 end
