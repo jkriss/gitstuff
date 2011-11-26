@@ -18,7 +18,8 @@ def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"
   {
     :search_form => haml(:search_form),
-    :root_path => url_prefix
+    :root_path => url_prefix,
+    :asset_path => "#{url_prefix}/assets"
   }
 end
 
