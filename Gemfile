@@ -11,6 +11,7 @@ gem "httparty"
 gem "hashie"
 gem "haml"
 gem "rack-cache"
+gem "rake"
 
 group :development do
   gem "capistrano"

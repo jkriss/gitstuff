@@ -11,6 +11,10 @@ class Repo
   end
   
   def self.clone(user, name, clone_url)
+    Resque.enqueue(Cloner, user, name, clone_url)
+  end
+  
+  def self.clone_now(user, name, clone_url)
     tmp_repo_path = repo_path(user, name)
     FileUtils.mkdir_p tmp_repo_path
     `cd #{tmp_repo_path} && git clone #{clone_url} ./`
@@ -44,6 +48,10 @@ class Repo
   end
   
   def reindex
+    Resque.enqueue(Indexer, user, name)
+  end
+  
+  def reindex_now
     ElasticSearch.clear(user, name)
     Dir["#{repo_path}/posts/*.yml"].each do |path|
       slug = File.basename(path, ".yml")

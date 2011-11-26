@@ -6,6 +6,8 @@ require 'digest/md5'
 require 'lib/elastic_search'
 require 'lib/repo'
 require 'lib/post'
+require 'lib/cloner'
+require 'lib/indexer'
 
 LOCAL_REPO_PATH = ENV['LOCAL_REPO_PATH']
 REPO_CACHE_PATH = ENV['RACK_ENV'] == 'production' ? "../../shared/repos" : "tmp/repos"
@@ -38,6 +40,7 @@ def find_repo
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
   cache_control :public
+  puts "#{request.url}-#{repo.commit_hash}"
   etag Digest::MD5.hexdigest("#{request.url}-#{repo.commit_hash}")
   repo
 end
