@@ -19,18 +19,34 @@
         width: 500px;
         margin: 0 auto;
       }
-
-      h1 {
-        padding: 20px;
-        margin: 60px auto;
+      
+      h1, h2 {
+        margin: 0 auto 10px auto;
         text-align: center;
         font-family: chaparral-pro;
         color: #666;
         font-weight: normal;
+      }
+      
+      h1 {
+        margin-top: 60px;
+        padding: 20px;
         font-size: 3.2em;
         text-shadow: 1px 1px 1px #ccc;
       }
       
+      h2 {
+        font-size: 1.2em;
+      }
+
+      a {
+        color: #666;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #000;
+      }
   %body
     #main
       = yield
