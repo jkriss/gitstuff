@@ -114,8 +114,7 @@ get '/:user/:repo/:post' do
     filter_attribute, filter_value = params[:post].split ':'
     repo.render_collection "#{filter_attribute}:#{filter_value}", 
       partials(repo).merge({ :url_prefix => url_prefix }), 
-      :page => params[:page],
-      :search => true
+      :page => params[:page]
   else
     post = repo.post(params[:post])
     repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
