@@ -46,6 +46,10 @@ def find_repo
   repo
 end
 
+error 404 do
+  haml :not_found, :layout => :gitstuff_layout
+end
+
 get '/' do
   haml :index, :layout => :gitstuff_layout
 end
