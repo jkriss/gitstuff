@@ -120,6 +120,7 @@ class Repo
   
   def load_post_file(slug, post=nil)
     path ||= File.join(repo_path, 'posts', slug) + ".yml"
+    return nil unless File.exist?(path)
     post_data = YAML.load_file(path)
     add_git_data(post_data, path)
     post_data['content'] = File.read(path).sub /---.*---\n/m, ''
