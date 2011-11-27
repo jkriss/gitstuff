@@ -25,7 +25,10 @@ def partials(repo)
 end
 
 def url_prefix
-  "#{request.url.match(/(^.*\/{2}[^\/]*)/)[1]}/#{params[:user]}/#{params[:repo]}"
+  request_url = request.url
+  # hack. there should be a good way to figure this out from headers
+  request_url.sub!(':8080','') 
+  "#{request_url.match(/(^.*\/{2}[^\/]*)/)[1]}/#{params[:user]}/#{params[:repo]}"
 end
 
 def post_url(slug)
