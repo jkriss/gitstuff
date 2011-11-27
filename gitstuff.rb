@@ -35,7 +35,9 @@ end
 def index
   repo = find_repo
   raise Sinatra::NotFound unless repo
-  repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), :page => params[:page]
+  repo.render_index partials(repo).merge({ :url_prefix => url_prefix }), 
+    :page => params[:page], 
+    :template => @template
 end
 
 def find_repo
@@ -96,6 +98,12 @@ get '/:user/:repo/' do
   index
 end
 
+get '/:user/:repo/atom.xml' do
+  # content_type "application/atom+xml"
+  @template = "atom.xml.liquid"
+  index
+end
+
 get '/:user/:repo' do
   index
 end
@@ -110,7 +118,6 @@ get '/:user/:repo/:post' do
       :page => params[:page]
   else
     post = repo.post(params[:post])
-    repo.index_post(params[:post]) if ENV['RACK_ENV'] == 'development'
     raise Sinatra::NotFound unless post
     repo.render_post post, partials(repo).merge({ :single_post => true })
   end

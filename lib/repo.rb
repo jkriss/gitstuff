@@ -33,7 +33,7 @@ class Repo
     `cd #{repo_path} && git pull`
     Dir["#{repo_path}/*"].each do |file_path|
       puts "-- #{file_path}"
-      `rm -rf #{file_path}` unless file_path =~ /\/(layouts||posts)$/
+      `rm -rf #{file_path}` unless file_path =~ /\/(templates||posts)$/
     end
     Dir["#{repo_path}/*/*"].each do |file_path|
       puts "-- #{file_path}"
@@ -79,8 +79,8 @@ class Repo
     query_options[:from] = (page-1) * size
     query_options[:size] = size
     results = ElasticSearch.search(user, name, query, query_options)
-    results.hits.each do |post|
-      html += render_raw_post(post, context.merge({ :url => "#{context[:url_prefix]}/#{post.id}" }))
+    context[:posts] = results.hits.collect do |post|
+      format_post(post, context)
     end
     context[:no_results] = true if results.hits.empty?
     page_url_prefix = "?"
@@ -94,12 +94,12 @@ class Repo
     if results.total > results.hits.size + (size * (page-1))
       context[:next_page] = "#{page_url_prefix}page=#{page+1}"
     end
-    render_layout(html, context)
+    render_layout(context, options)
   end
 
   def render_post(post, context={})
-    rendered_post = render_raw_post(post, context)
-    render_layout(rendered_post, context)
+    context[:posts] = [format_post(post, context)]
+    render_layout(context)
   end
   
   def commit_hash
@@ -107,6 +107,12 @@ class Repo
   end
   
   protected
+  def format_post(post, context)
+    post.content = RDiscount.new(post.content).to_html
+    post.url = "#{context[:url_prefix]}/#{post.id}"
+    post.to_hash
+  end
+  
   def load_post_file(slug, post=nil)
     path ||= File.join(repo_path, 'posts', slug) + ".yml"
     post_data = YAML.load_file(path)
@@ -141,19 +147,13 @@ class Repo
     end
   end
   
-  def render_raw_post(post, context={})
-    post.content = RDiscount.new(post.content).to_html  
-    template = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'post.html.liquid'))
-    template.render Hashie::Mash.new(context.merge(post.to_hash))
-  end
-  
-  def render_layout(content, context={})
-    layout = Liquid::Template.parse(File.read File.join(repo_path, 'layouts', 'page.html.liquid'))
-    layout.render Hashie::Mash.new context.merge(:content => content)
+  def render_layout(content, options={})
+    template_file = options[:template] || 'index.html.liquid'
+    layout = Liquid::Template.parse(File.read File.join(repo_path, 'templates', template_file))
+    layout.render Hashie::Mash.new content
   end
   
   def self.repo_path(user=@user, name=@name)
-    # LOCAL_REPO_PATH="../<repo>"
     if LOCAL_REPO_PATH
       LOCAL_REPO_PATH.sub('<user>', user).sub('<repo>', name)
     else
