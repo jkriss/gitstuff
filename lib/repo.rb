@@ -65,6 +65,7 @@ class Repo
       slug = File.basename(path, ".yml")
       index_post slug, path
     end
+    ElasticSearch.save_repo_metadata(user, name, :commit => commit_hash)
   end
   
   def render_index(context={}, options={})
@@ -104,6 +105,10 @@ class Repo
   
   def commit_hash
     git.commits('master',1).first
+  end
+  
+  def cached_commit_hash
+    ElasticSearch.repo_metadata(user, name)['commit']
   end
   
   protected

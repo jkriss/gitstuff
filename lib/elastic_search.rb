@@ -7,6 +7,15 @@ class ElasticSearch
     self.put "/#{user}/#{repo}/#{slug}", :body => post_data.to_json
   end
   
+  def self.save_repo_metadata(user, repo, data)
+    self.put "/#{user}/#{repo}/_meta", :body => (data.merge({ :hidden => true })).to_json
+  end
+  
+  def self.repo_metadata(user, repo)
+    result = self.get "/#{user}/#{repo}/_meta"
+    result['_source']
+  end
+  
   def self.get_post(user, repo, slug)
     result = self.get "/#{user}/#{repo}/#{slug}"
     post = result['_source']
@@ -24,6 +33,11 @@ class ElasticSearch
       :query => {
         :query_string => {
           :query => query
+        }
+      }, 
+      :filter => {
+        :not => {
+          :term => { :hidden => true }
         }
       }
     }.merge(options)

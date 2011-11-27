@@ -47,8 +47,7 @@ def find_repo
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
   cache_control :public
-  puts "#{request.url}-#{repo.commit_hash}"
-  etag Digest::MD5.hexdigest("#{request.url}-#{repo.commit_hash}")
+  etag Digest::MD5.hexdigest("#{request.url}-#{repo.cached_commit_hash}")
   repo
 end
 
@@ -127,6 +126,6 @@ get '/:user/:repo/:post' do
 end
 
 post '/:user/:repo/reindex' do
-  find_repo.reindex
+  find_repo.reindex_now if ENV['RACK_ENV'] == 'development'
   'ok'
 end
