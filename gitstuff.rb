@@ -105,8 +105,7 @@ get '/:user/:repo/' do
 end
 
 get '/:user/:repo/atom.xml' do
-  # content_type "application/atom+xml"
-  content_type "text/plain"
+  content_type "application/atom+xml"
   @template = "atom.xml.liquid"
   index
 end
