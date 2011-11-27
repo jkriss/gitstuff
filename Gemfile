@@ -12,6 +12,7 @@ gem "hashie"
 gem "haml"
 gem "rack-cache"
 gem "rake"
+gem "jekyll"
 
 group :development do
   gem "capistrano"

@@ -15,6 +15,10 @@ REPO_CACHE_PATH = ENV['RACK_ENV'] == 'production' ? "../../shared/repos" : "tmp/
 
 use Rack::Cache, :entitystore => 'file:tmp/cache/rack/body'
 
+configure do
+  Liquid::Template.register_filter(Jekyll::Filters)
+end
+
 def partials(repo)
   @search_path = "/#{repo.user}/#{repo.name}/search"
   {
@@ -102,6 +106,7 @@ end
 
 get '/:user/:repo/atom.xml' do
   # content_type "application/atom+xml"
+  content_type "text/plain"
   @template = "atom.xml.liquid"
   index
 end
