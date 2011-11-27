@@ -25,7 +25,7 @@ def partials(repo)
 end
 
 def url_prefix
-  "/#{params[:user]}/#{params[:repo]}"
+  "#{request.url.match(/(^.*\/{2}[^\/]*)/)[1]}/#{params[:user]}/#{params[:repo]}"
 end
 
 def post_url(slug)
