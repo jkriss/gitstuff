@@ -156,7 +156,10 @@ class Repo
   
   def render_layout(content, options={})
     template_file = options[:template] || 'index.html.liquid'
-    layout = Liquid::Template.parse(File.read File.join(repo_path, 'templates', template_file))
+    file = File.join(repo_path, 'templates', template_file)
+    puts file
+    raise Sinatra::NotFound unless File.exist?(file)
+    layout = Liquid::Template.parse(File.read file)
     layout.render Hashie::Mash.new content
   end
   
