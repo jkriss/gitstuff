@@ -51,7 +51,8 @@ def find_repo
   repo = Repo.find(params[:user], params[:repo])
   raise Sinatra::NotFound unless repo
   cache_control :public
-  etag Digest::MD5.hexdigest("#{request.url}-#{repo.cached_commit_hash}")
+  cached_commit_hash = repo.cached_commit_hash
+  etag Digest::MD5.hexdigest("#{request.url}-#{cached_commit_hash}") if cached_commit_hash
   repo
 end
 

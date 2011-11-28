@@ -108,7 +108,8 @@ class Repo
   end
   
   def cached_commit_hash
-    ElasticSearch.repo_metadata(user, name)['commit']
+    result = ElasticSearch.repo_metadata(user, name)
+    result ? result['commit'] : nil
   end
   
   protected
