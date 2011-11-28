@@ -7,7 +7,7 @@ class ApiKeyManager
   end
   
   def self.valid_key?(key, url)
-    user = /git:\/\/github.com\/([^\/]+)\/drinks\.git/.match(url)[1]
+    user = /git:\/\/github.com\/([^\/]+)\/[^\/]\.git/.match(url)[1]
     puts "user: #{user}"
     key_for_user(user) == key
   end
