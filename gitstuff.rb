@@ -126,7 +126,7 @@ get '/:user/:repo/:post' do
   else
     post = repo.post(params[:post])
     raise Sinatra::NotFound unless post
-    repo.render_post post, partials(repo).merge({ :single_post => true })
+    repo.render_post post, partials(repo).merge({ :single_post => true, :url_prefix => url_prefix })
   end
 end
 
